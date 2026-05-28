@@ -1,6 +1,6 @@
-# Pixlar
+# PixlrTools
 
-> Free, private, and fast image & video processing tools everything runs in the browser. No uploads, no server storage, no account needed.
+> Free, private, and fast image & video processing tools — everything runs in the browser. No uploads, no server storage, no account needed.
 
 ---
 
@@ -12,7 +12,7 @@ Deploy your own → [Vercel](https://vercel.com) · [Netlify](https://netlify.co
 
 ## What it does
 
-Pixlar is an all-in-one media toolkit built with Next.js 15. Every tool processes files **locally in the user's browser** using the Canvas API and FFmpeg.wasm — nothing is ever sent to a server.
+PixlrTools is an all-in-one media toolkit built with Next.js 15. Every tool processes files **locally in the user's browser** using the Canvas API and FFmpeg.wasm — nothing is ever sent to a server.
 
 ### Image Tools
 
@@ -51,7 +51,7 @@ Pixlar is an all-in-one media toolkit built with Next.js 15. Every tool processe
 ## Project Structure
 
 ```
-pixlar
+pixlr-tools/
 ├── app/
 │   ├── layout.tsx              # Root layout — Header, Footer, SEO metadata
 │   ├── page.tsx                # Homepage — hero, tool grid, SEO content
@@ -95,7 +95,7 @@ pixlar
 
 ```bash
 # Clone or unzip the project
-cd pixlar
+cd pixlr-tools
 
 # Install dependencies
 npm install
