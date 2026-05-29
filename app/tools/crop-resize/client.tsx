@@ -1,44 +1,45 @@
 'use client'
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import ToolLayout from '@/components/ToolLayout'
 import FileDropzone from '@/components/FileDropzone'
 import DownloadButton from '@/components/DownloadButton'
 
 const RATIOS = [
-  { label: 'Free',  value: null      },
-  { label: '1:1',   value: 1         },
-  { label: '4:3',   value: 4 / 3     },
-  { label: '16:9',  value: 16 / 9    },
-  { label: '3:4',   value: 3 / 4     },
-  { label: '9:16',  value: 9 / 16    },
+  { label: 'Free', value: null },
+  { label: '1:1', value: 1 },
+  { label: '4:3', value: 4 / 3 },
+  { label: '16:9', value: 16 / 9 },
+  { label: '3:4', value: 3 / 4 },
+  { label: '9:16', value: 9 / 16 },
 ]
 
 interface CropBox { x: number; y: number; w: number; h: number }
 
 export default function CropResizeClient() {
-  const canvasRef  = useRef<HTMLCanvasElement>(null)
-  const imageRef   = useRef<HTMLImageElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const imageRef = useRef<HTMLImageElement | null>(null)
   const previewRef = useRef<HTMLDivElement>(null)
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
 
   // ── Image state ────────────────────────────────────────────────────────────
-  const [imageSrc,   setImageSrc]   = useState<string | null>(null)
-  const [filename,   setFilename]   = useState('image.jpg')
-  const [resultUrl,  setResultUrl]  = useState<string | null>(null)
+  const [imageSrc, setImageSrc] = useState<string | null>(null)
+  const [filename, setFilename] = useState('image.jpg')
+  const [resultUrl, setResultUrl] = useState<string | null>(null)
   const [resultDims, setResultDims] = useState<{ w: number; h: number } | null>(null)
 
   // ── Resize state ───────────────────────────────────────────────────────────
-  const [width,      setWidth]      = useState(0)
-  const [height,     setHeight]     = useState(0)
-  const [origWidth,  setOrigWidth]  = useState(0)
+  const [width, setWidth] = useState(0)
+  const [height, setHeight] = useState(0)
+  const [origWidth, setOrigWidth] = useState(0)
   const [origHeight, setOrigHeight] = useState(0)
-  const [ratio,      setRatio]      = useState<number | null>(null)
+  const [ratio, setRatio] = useState<number | null>(null)
 
   // ── Mode: 'resize' | 'autocrop' | 'manualcrop' ────────────────────────────
   const [mode, setMode] = useState<'resize' | 'autocrop' | 'manualcrop'>('resize')
 
   // ── Manual crop drag state ─────────────────────────────────────────────────
-  const [cropBox,   setCropBox]   = useState<CropBox | null>(null)
-  const [dragging,  setDragging]  = useState(false)
+  const [cropBox, setCropBox] = useState<CropBox | null>(null)
+  const [dragging, setDragging] = useState(false)
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -79,21 +80,21 @@ export default function CropResizeClient() {
 
   // ── Convert preview element px → original image px ────────────────────────
   const previewToImage = (box: CropBox) => {
-    const el  = previewRef.current
+    const el = previewRef.current
     const img = imageRef.current
     if (!el || !img) return null
 
     // The img inside the div uses objectFit:contain — find rendered size
-    const elW   = el.clientWidth
-    const elH   = el.clientHeight        // may be taller than rendered img
-    const imgW  = img.naturalWidth
-    const imgH  = img.naturalHeight
+    const elW = el.clientWidth
+    const elH = el.clientHeight        // may be taller than rendered img
+    const imgW = img.naturalWidth
+    const imgH = img.naturalHeight
     const scale = Math.min(elW / imgW, elH / imgH)
     const rendW = imgW * scale
     const rendH = imgH * scale
     // Offset if image is letterboxed inside the container
-    const offX  = (elW - rendW) / 2
-    const offY  = (elH - rendH) / 2
+    const offX = (elW - rendW) / 2
+    const offY = (elH - rendH) / 2
 
     const scaleX = imgW / rendW
     const scaleY = imgH / rendH
@@ -141,7 +142,7 @@ export default function CropResizeClient() {
   // ── Touch support (mobile) ─────────────────────────────────────────────────
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (mode !== 'manualcrop') return
-    const rect  = e.currentTarget.getBoundingClientRect()
+    const rect = e.currentTarget.getBoundingClientRect()
     const touch = e.touches[0]
     const x = touch.clientX - rect.left
     const y = touch.clientY - rect.top
@@ -153,7 +154,7 @@ export default function CropResizeClient() {
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!dragging || mode !== 'manualcrop') return
     e.preventDefault()
-    const rect  = e.currentTarget.getBoundingClientRect()
+    const rect = e.currentTarget.getBoundingClientRect()
     const touch = e.touches[0]
     const x = touch.clientX - rect.left
     const y = touch.clientY - rect.top
@@ -164,17 +165,67 @@ export default function CropResizeClient() {
       h: Math.abs(y - dragStart.y),
     })
   }
+  // ── Live preview render (draws scaled-down version into preview canvas) ────
+  const renderPreview = useCallback(() => {
+    const img = imageRef.current
+    const canvas = previewCanvasRef.current
+    if (!img || !canvas) return
+    const ctx = canvas.getContext('2d')!
+
+    // Max display size — keeps preview fast and responsive
+    const MAX = 600
+    let dispW = width
+    let dispH = height
+
+    if (mode === 'resize') {
+      // Scale down proportionally to fit MAX
+      const scale = Math.min(MAX / width, MAX / height, 1)
+      dispW = Math.round(width * scale)
+      dispH = Math.round(height * scale)
+      canvas.width = dispW
+      canvas.height = dispH
+      ctx.clearRect(0, 0, dispW, dispH)
+      ctx.drawImage(img, 0, 0, dispW, dispH)
+
+    } else if (mode === 'autocrop') {
+      // Show what the center-crop will look like
+      const srcRatio = img.naturalWidth / img.naturalHeight
+      const dstRatio = width / height
+      let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight
+      if (srcRatio > dstRatio) {
+        sw = img.naturalHeight * dstRatio
+        sx = (img.naturalWidth - sw) / 2
+      } else {
+        sh = img.naturalWidth / dstRatio
+        sy = (img.naturalHeight - sh) / 2
+      }
+      const scale = Math.min(MAX / width, MAX / height, 1)
+      dispW = Math.round(width * scale)
+      dispH = Math.round(height * scale)
+      canvas.width = dispW
+      canvas.height = dispH
+      ctx.clearRect(0, 0, dispW, dispH)
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dispW, dispH)
+    }
+  }, [width, height, mode])
+
+  // Re-render preview whenever width, height, mode or image changes
+  useEffect(() => {
+    if (imageSrc && (mode === 'resize' || mode === 'autocrop')) {
+      renderPreview()
+    }
+  }, [imageSrc, width, height, mode, renderPreview])
 
   // ── Canvas processing ──────────────────────────────────────────────────────
   const process = useCallback(() => {
-    const img    = imageRef.current
+    const img = imageRef.current
     const canvas = canvasRef.current
     if (!img || !canvas) return
     const ctx = canvas.getContext('2d')!
 
     if (mode === 'resize') {
       // ── Plain resize ──
-      canvas.width  = width
+      canvas.width = width
       canvas.height = height
       ctx.clearRect(0, 0, width, height)
       ctx.drawImage(img, 0, 0, width, height)
@@ -185,7 +236,7 @@ export default function CropResizeClient() {
       const imgCoords = previewToImage(cropBox)
       if (!imgCoords) return
       const { x: sx, y: sy, w: sw, h: sh } = imgCoords
-      canvas.width  = sw
+      canvas.width = sw
       canvas.height = sh
       ctx.clearRect(0, 0, sw, sh)
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
@@ -193,7 +244,7 @@ export default function CropResizeClient() {
 
     } else {
       // ── Auto center-crop by ratio / dimensions ──
-      canvas.width  = width
+      canvas.width = width
       canvas.height = height
       ctx.clearRect(0, 0, width, height)
       const srcRatio = img.naturalWidth / img.naturalHeight
@@ -244,11 +295,11 @@ export default function CropResizeClient() {
             className="result-panel"
             style={{
               marginBottom: 16,
-              position:     'relative',
-              cursor:        mode === 'manualcrop' ? 'crosshair' : 'default',
-              userSelect:   'none',
-              padding:       0,
-              overflow:     'hidden',
+              position: 'relative',
+              cursor: mode === 'manualcrop' ? 'crosshair' : 'default',
+              userSelect: 'none',
+              padding: 0,
+              overflow: 'hidden',
             }}
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
@@ -259,46 +310,75 @@ export default function CropResizeClient() {
             onTouchEnd={onMouseUp}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageSrc}
-              alt="Original"
-              draggable={false}
-              style={{
-                width:      '100%',
-                maxHeight:   350,
-                objectFit:  'contain',
-                borderRadius: 8,
-                display:    'block',
-              }}
-            />
+            {/* Live preview canvas for resize + autocrop */}
+            {/* Live preview canvas for resize + autocrop */}
+            {(mode === 'resize' || mode === 'autocrop') ? (
+              <div style={{ position: 'relative' }}>
+                <canvas
+                  ref={previewCanvasRef}
+                  style={{ width: '100%', display: 'block', borderRadius: 8 }}
+                />
+                {/* floating label */}
+                <div style={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 8,
+                  background: 'rgba(0,0,0,0.55)',
+                  backdropFilter: 'blur(6px)',
+                  borderRadius: 99,
+                  padding: '2px 10px',
+                  fontSize: 11,
+                  color: '#a5b4fc',
+                  fontFamily: 'var(--font-mono)',
+                  pointerEvents: 'none',
+                }}>
+                  Live preview · {width} × {height} px
+                </div>
+              </div>
+            ) : (
+              /* Manual crop still shows the original image for drag selection */
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageSrc}
+                alt="Original"
+                draggable={false}
+                style={{
+                  width: '100%',
+                  maxHeight: 350,
+                  objectFit: 'contain',
+                  borderRadius: 8,
+                  display: 'block',
+                }}
+              />
+            )}
 
             {/* Blue selection box shown during manual crop */}
             {mode === 'manualcrop' && cropBox && cropBox.w > 4 && cropBox.h > 4 && (
               <div
                 style={{
-                  position:     'absolute',
-                  left:          cropBox.x,
-                  top:           cropBox.y,
-                  width:         cropBox.w,
-                  height:        cropBox.h,
-                  border:       '2px solid #6366f1',
-                  background:   'rgba(99,102,241,0.15)',
+                  position: 'absolute',
+                  left: cropBox.x,
+                  top: cropBox.y,
+                  width: cropBox.w,
+                  height: cropBox.h,
+                  border: '2px solid #6366f1',
+                  background: 'rgba(99,102,241,0.15)',
                   pointerEvents: 'none',
-                  boxSizing:    'border-box',
-                  borderRadius:  2,
+                  boxSizing: 'border-box',
+                  borderRadius: 2,
                 }}
               >
                 {/* Corner handles */}
                 {[
-                  { top: -3,  left: -3  },
-                  { top: -3,  right: -3 },
+                  { top: -3, left: -3 },
+                  { top: -3, right: -3 },
                   { bottom: -3, left: -3 },
                   { bottom: -3, right: -3 },
                 ].map((style, i) => (
                   <div key={i} style={{
-                    position:  'absolute',
-                    width:      8,
-                    height:     8,
+                    position: 'absolute',
+                    width: 8,
+                    height: 8,
                     background: '#6366f1',
                     borderRadius: 1,
                     ...style,
@@ -308,16 +388,16 @@ export default function CropResizeClient() {
                 {/* Dimension label inside selection */}
                 {cropImageSize && (
                   <div style={{
-                    position:    'absolute',
-                    top:          4,
-                    left:         4,
-                    background:  'rgba(99,102,241,0.85)',
-                    color:       '#fff',
-                    fontSize:     11,
-                    fontFamily:  'var(--font-mono)',
-                    padding:     '2px 6px',
+                    position: 'absolute',
+                    top: 4,
+                    left: 4,
+                    background: 'rgba(99,102,241,0.85)',
+                    color: '#fff',
+                    fontSize: 11,
+                    fontFamily: 'var(--font-mono)',
+                    padding: '2px 6px',
                     borderRadius: 4,
-                    whiteSpace:  'nowrap',
+                    whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                   }}>
                     {cropImageSize.w} × {cropImageSize.h} px
@@ -329,21 +409,21 @@ export default function CropResizeClient() {
             {/* Dark overlay outside selection */}
             {mode === 'manualcrop' && !cropBox && (
               <div style={{
-                position:     'absolute',
-                inset:         0,
-                background:   'rgba(0,0,0,0.25)',
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(0,0,0,0.25)',
                 pointerEvents: 'none',
-                display:      'flex',
-                alignItems:   'center',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius:  8,
+                borderRadius: 8,
               }}>
                 <p style={{
-                  color:       '#e0e7ff',
-                  fontSize:     14,
-                  fontWeight:   500,
-                  background:  'rgba(0,0,0,0.5)',
-                  padding:     '8px 16px',
+                  color: '#e0e7ff',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  background: 'rgba(0,0,0,0.5)',
+                  padding: '8px 16px',
                   borderRadius: 8,
                 }}>
                   🖱 Click and drag to select crop area
@@ -380,17 +460,17 @@ export default function CropResizeClient() {
           {/* ── Manual crop info + clear ── */}
           {mode === 'manualcrop' && (
             <div style={{
-              marginBottom:    16,
-              padding:        '10px 14px',
-              background:     'rgba(99,102,241,0.08)',
-              border:         '1px solid rgba(99,102,241,0.25)',
-              borderRadius:    8,
-              fontSize:        13,
-              color:          '#a5b4fc',
-              display:        'flex',
-              alignItems:     'center',
+              marginBottom: 16,
+              padding: '10px 14px',
+              background: 'rgba(99,102,241,0.08)',
+              border: '1px solid rgba(99,102,241,0.25)',
+              borderRadius: 8,
+              fontSize: 13,
+              color: '#a5b4fc',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'space-between',
-              gap:             12,
+              gap: 12,
             }}>
               <span>
                 {cropBox && cropBox.w > 4
@@ -429,11 +509,11 @@ export default function CropResizeClient() {
           {mode !== 'manualcrop' && (
             <>
               <div style={{
-                display:      'grid',
+                display: 'grid',
                 gridTemplateColumns: '1fr auto 1fr',
-                alignItems:   'center',
-                gap:           12,
-                marginBottom:  12,
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 12,
               }}>
                 <div>
                   <label style={{ fontSize: 13, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
@@ -477,25 +557,29 @@ export default function CropResizeClient() {
             className="btn-primary"
             style={{ width: '100%', justifyContent: 'center' }}
           >
-            {mode === 'resize'     ? '↔ Apply resize'
-           : mode === 'manualcrop' ? '✂ Apply manual crop'
-           :                         '✂ Apply auto crop'}
+            {mode === 'resize' ? '↔ Apply resize'
+              : mode === 'manualcrop' ? '✂ Apply manual crop'
+                : '✂ Apply auto crop'}
           </button>
 
           {/* ── Result ── */}
+          {/* ── Result ── */}
           {resultUrl && resultDims && (
             <>
-              <div className="result-panel" style={{ marginTop: 20 }}>
-                <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8 }}>
-                  Result: {resultDims.w} × {resultDims.h} px
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={resultUrl}
-                  alt="Result"
-                  style={{ width: '100%', maxHeight: 350, objectFit: 'contain', borderRadius: 8 }}
-                />
-              </div>
+              {/* Only show result image for manual crop — resize/autocrop already show live preview */}
+              {mode === 'manualcrop' && (
+                <div className="result-panel" style={{ marginTop: 20 }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8 }}>
+                    Result: {resultDims.w} × {resultDims.h} px
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={resultUrl}
+                    alt="Result"
+                    style={{ width: '100%', maxHeight: 350, objectFit: 'contain', borderRadius: 8 }}
+                  />
+                </div>
+              )}
               <DownloadButton
                 url={resultUrl}
                 filename={`${mode}_${filename}`}
