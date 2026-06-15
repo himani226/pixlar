@@ -39,8 +39,8 @@ export default function CropResizeClient() {
 
   // ── Manual crop drag state ─────────────────────────────────────────────────
   const [cropBox, setCropBox] = useState<CropBox | null>(null)
-  // 'draw' = drawing new box, 'move' = moving whole box
-  // 'nw'|'ne'|'sw'|'se' = corner stretch, 'n'|'s'|'e'|'w' = edge stretch
+  const [autoCropBox, setAutoCropBox] = useState<CropBox | null>(null)
+  const [autoBoxAtDrag, setAutoBoxAtDrag] = useState<CropBox | null>(null)
   type DragMode = 'none' | 'draw' | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w'
   const [dragMode, setDragMode] = useState<DragMode>('none')
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
@@ -78,10 +78,47 @@ export default function CropResizeClient() {
 
   const handleRatio = (r: number | null) => {
     setRatio(r)
-    if (r !== null) setHeight(Math.round(width / r))
+    if (r !== null) {
+      setHeight(Math.round(width / r))
+      // Reset autocrop box so it re-centers with new ratio
+      setAutoCropBox(null)
+    }
   }
   // ── Detect which part of the crop box the cursor is on ────────────────────
   const HANDLE = 10 // px hit area for handles
+  // ── Build a centered autocrop box in preview-element coordinates ──────────
+  const buildAutoCropBox = useCallback((): CropBox | null => {
+    const el = previewRef.current
+    const img = imageRef.current
+    if (!el || !img) return null
+
+    const elW = el.clientWidth
+    const elH = el.clientHeight
+    const scale = Math.min(elW / img.naturalWidth, elH / img.naturalHeight)
+    const rendW = img.naturalWidth * scale
+    const rendH = img.naturalHeight * scale
+    const offX = (elW - rendW) / 2
+    const offY = (elH - rendH) / 2
+
+    const dstRatio = width / height   // locked aspect ratio
+    const srcRatio = rendW / rendH
+
+    let bw = 0, bh = 0
+    if (srcRatio > dstRatio) {
+      bh = rendH
+      bw = bh * dstRatio
+    } else {
+      bw = rendW
+      bh = bw / dstRatio
+    }
+
+    return {
+      x: offX + (rendW - bw) / 2,
+      y: offY + (rendH - bh) / 2,
+      w: bw,
+      h: bh,
+    }
+  }, [width, height])
   const hitTest = (px: number, py: number, box: CropBox): DragMode => {
     const { x, y, w, h } = box
     const onLeft = Math.abs(px - x) < HANDLE
@@ -140,7 +177,6 @@ export default function CropResizeClient() {
   }
 
   // ── Mouse drag handlers ────────────────────────────────────────────────────
-  // ── Mouse handlers ────────────────────────────────────────────────────────
   const getPos = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     return { x: e.clientX - rect.left, y: e.clientY - rect.top }
@@ -152,9 +188,23 @@ export default function CropResizeClient() {
   }
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (mode !== 'manualcrop') return
+    if (mode !== 'manualcrop' && mode !== 'autocrop') return
     e.preventDefault()
     const { x, y } = getPos(e)
+
+    // ── Autocrop: only allow moving the locked-ratio frame ──
+    if (mode === 'autocrop') {
+      const box = autoCropBox ?? buildAutoCropBox()
+      if (!box) return
+      setAutoCropBox(box)
+      const hit = hitTest(x, y, box)
+      if (hit !== 'none') {
+        setDragMode(hit)
+        setDragStart({ x, y })
+        setAutoBoxAtDrag({ ...box })
+      }
+      return
+    }
 
     if (cropBox) {
       const hit = hitTest(x, y, cropBox)
@@ -173,7 +223,7 @@ export default function CropResizeClient() {
   }
 
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (mode !== 'manualcrop') return
+    if (mode !== 'manualcrop'&& mode !== 'autocrop') return
     const { x, y } = getPos(e)
 
     // Update cursor based on hover position
@@ -190,6 +240,36 @@ export default function CropResizeClient() {
     if (dragMode === 'none') return
     const dx = x - dragStart.x
     const dy = y - dragStart.y
+
+    // ── Autocrop: move or stretch the locked-ratio frame ──
+    if (mode === 'autocrop' && autoBoxAtDrag) {
+      const b = { ...autoBoxAtDrag }
+      const ar = b.w / b.h   // preserve aspect ratio when stretching
+
+      let { x: bx, y: by, w: bw, h: bh } = b
+
+      if (dragMode === 'move') {
+        setCropBox(null)
+        setAutoCropBox({ ...b, x: bx + dx, y: by + dy })
+        return
+      }
+
+      // Stretch but lock aspect ratio
+      if (dragMode === 'se') { bw += dx; bh = bw / ar }
+      if (dragMode === 'sw') { bx += dx; bw -= dx; bh = bw / ar }
+      if (dragMode === 'ne') { bw += dx; bh = bw / ar; by = b.y + b.h - bh }
+      if (dragMode === 'nw') { bx += dx; bw -= dx; bh = bw / ar; by = b.y + b.h - bh }
+      if (dragMode === 's') { bh += dy; bw = bh * ar }
+      if (dragMode === 'n') { by += dy; bh -= dy; bw = bh * ar }
+      if (dragMode === 'e') { bw += dx; bh = bw / ar }
+      if (dragMode === 'w') { bx += dx; bw -= dx; bh = bw / ar }
+
+      if (bw < 20) bw = 20
+      if (bh < 20) bh = 20
+
+      setAutoCropBox({ x: bx, y: by, w: bw, h: bh })
+      return
+    }
 
     if (dragMode === 'draw') {
       setCropBox({
@@ -316,24 +396,17 @@ export default function CropResizeClient() {
       ctx.drawImage(img, 0, 0, dispW, dispH)
 
     } else if (mode === 'autocrop') {
-      // Show what the center-crop will look like
-      const srcRatio = img.naturalWidth / img.naturalHeight
-      const dstRatio = width / height
-      let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight
-      if (srcRatio > dstRatio) {
-        sw = img.naturalHeight * dstRatio
-        sx = (img.naturalWidth - sw) / 2
-      } else {
-        sh = img.naturalWidth / dstRatio
-        sy = (img.naturalHeight - sh) / 2
-      }
-      const scale = Math.min(MAX / width, MAX / height, 1)
-      dispW = Math.round(width * scale)
-      dispH = Math.round(height * scale)
+      // Draw the full image dimmed — the overlay frame shows the crop area
+      const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1)
+      dispW = Math.round(img.naturalWidth * scale)
+      dispH = Math.round(img.naturalHeight * scale)
       canvas.width = dispW
       canvas.height = dispH
       ctx.clearRect(0, 0, dispW, dispH)
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dispW, dispH)
+      // Draw dimmed full image as background
+      ctx.globalAlpha = 0.4
+      ctx.drawImage(img, 0, 0, dispW, dispH)
+      ctx.globalAlpha = 1
     }
   }, [width, height, mode])
 
@@ -343,6 +416,16 @@ export default function CropResizeClient() {
       renderPreview()
     }
   }, [imageSrc, width, height, mode, renderPreview])
+
+  // Initialize autocrop box when switching to autocrop or ratio changes
+  useEffect(() => {
+    if (mode === 'autocrop' && imageSrc) {
+      setAutoCropBox((prev) => prev ?? buildAutoCropBox())
+    }
+    if (mode !== 'autocrop') {
+      setAutoCropBox(null)
+    }
+  }, [mode, imageSrc, width, height, buildAutoCropBox])
 
   // ── Canvas processing ──────────────────────────────────────────────────────
   const process = useCallback(() => {
@@ -371,20 +454,47 @@ export default function CropResizeClient() {
       setResultDims({ w: sw, h: sh })
 
     } else {
-      // ── Auto center-crop by ratio / dimensions ──
+      // ── Autocrop: use user-positioned frame if available ──
       canvas.width = width
       canvas.height = height
       ctx.clearRect(0, 0, width, height)
-      const srcRatio = img.naturalWidth / img.naturalHeight
-      const dstRatio = width / height
+
       let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight
-      if (srcRatio > dstRatio) {
-        sw = img.naturalHeight * dstRatio
-        sx = (img.naturalWidth - sw) / 2
+
+      if (autoCropBox && previewRef.current) {
+        // Convert autocrop box preview coords → image coords
+        const el = previewRef.current
+        const elW = el.clientWidth
+        const elH = el.clientHeight
+        const scale = Math.min(elW / img.naturalWidth, elH / img.naturalHeight)
+        const rendW = img.naturalWidth * scale
+        const rendH = img.naturalHeight * scale
+        const offX = (elW - rendW) / 2
+        const offY = (elH - rendH) / 2
+
+        sx = Math.round((autoCropBox.x - offX) / scale)
+        sy = Math.round((autoCropBox.y - offY) / scale)
+        sw = Math.round(autoCropBox.w / scale)
+        sh = Math.round(autoCropBox.h / scale)
+
+        // Clamp to image bounds
+        sx = Math.max(0, Math.min(sx, img.naturalWidth - sw))
+        sy = Math.max(0, Math.min(sy, img.naturalHeight - sh))
+        sw = Math.min(sw, img.naturalWidth - sx)
+        sh = Math.min(sh, img.naturalHeight - sy)
       } else {
-        sh = img.naturalWidth / dstRatio
-        sy = (img.naturalHeight - sh) / 2
+        // Fallback: center crop
+        const srcRatio = img.naturalWidth / img.naturalHeight
+        const dstRatio = width / height
+        if (srcRatio > dstRatio) {
+          sw = img.naturalHeight * dstRatio
+          sx = (img.naturalWidth - sw) / 2
+        } else {
+          sh = img.naturalWidth / dstRatio
+          sy = (img.naturalHeight - sh) / 2
+        }
       }
+
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height)
       setResultDims({ w: width, h: height })
     }
@@ -462,6 +572,107 @@ export default function CropResizeClient() {
                 }}>
                   Live preview · {width} × {height} px
                 </div>
+                {/* Autocrop draggable frame overlay */}
+                {mode === 'autocrop' && autoCropBox && (
+                  <div style={{
+                    position: 'absolute',
+                    left: autoCropBox.x,
+                    top: autoCropBox.y,
+                    width: autoCropBox.w,
+                    height: autoCropBox.h,
+                    pointerEvents: 'none',
+                    boxSizing: 'border-box',
+                  }}>
+                    {/* Bright crop window — cut through the dim */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      border: '2px solid #6366f1',
+                      boxShadow: '0 0 0 9999px rgba(0,0,0,0.45)',
+                      boxSizing: 'border-box',
+                      borderRadius: 1,
+                    }} />
+
+                    {/* Rule-of-thirds grid lines */}
+                    {[33, 66].map((pct) => (
+                      <div key={`v${pct}`} style={{
+                        position: 'absolute',
+                        top: 0,
+                        bottom: 0,
+                        left: `${pct}%`,
+                        width: 1,
+                        background: 'rgba(255,255,255,0.25)',
+                        pointerEvents: 'none',
+                      }} />
+                    ))}
+                    {[33, 66].map((pct) => (
+                      <div key={`h${pct}`} style={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: `${pct}%`,
+                        height: 1,
+                        background: 'rgba(255,255,255,0.25)',
+                        pointerEvents: 'none',
+                      }} />
+                    ))}
+
+                    {/* Corner handles */}
+                    {[
+                      { top: -5, left: -5, cursor: 'nw-resize' },
+                      { top: -5, right: -5, cursor: 'ne-resize' },
+                      { bottom: -5, left: -5, cursor: 'sw-resize' },
+                      { bottom: -5, right: -5, cursor: 'se-resize' },
+                    ].map((s, i) => (
+                      <div key={i} style={{
+                        position: 'absolute',
+                        width: 12,
+                        height: 12,
+                        background: '#6366f1',
+                        border: '2px solid #fff',
+                        borderRadius: 2,
+                        top: s.top, left: s.left,
+                        right: s.right, bottom: s.bottom,
+                      }} />
+                    ))}
+
+                    {/* Edge handles */}
+                    {[
+                      { top: '50%', left: -5, transform: 'translateY(-50%)' },
+                      { top: '50%', right: -5, transform: 'translateY(-50%)' },
+                      { left: '50%', top: -5, transform: 'translateX(-50%)' },
+                      { left: '50%', bottom: -5, transform: 'translateX(-50%)' },
+                    ].map((s, i) => (
+                      <div key={`e${i}`} style={{
+                        position: 'absolute',
+                        width: 10,
+                        height: 10,
+                        background: '#818cf8',
+                        border: '2px solid #fff',
+                        borderRadius: 99,
+                        top: s.top, left: s.left,
+                        right: s.right, bottom: s.bottom,
+                        transform: s.transform,
+                      }} />
+                    ))}
+
+                    {/* Size label */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: -24,
+                      left: 0,
+                      fontSize: 11,
+                      color: '#a5b4fc',
+                      fontFamily: 'var(--font-mono)',
+                      whiteSpace: 'nowrap',
+                      background: 'rgba(0,0,0,0.5)',
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                    }}>
+                      {width} × {height} px
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* Manual crop still shows the original image for drag selection */
