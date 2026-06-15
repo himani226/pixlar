@@ -39,9 +39,12 @@ export default function CropResizeClient() {
 
   // ── Manual crop drag state ─────────────────────────────────────────────────
   const [cropBox, setCropBox] = useState<CropBox | null>(null)
-  const [dragging, setDragging] = useState(false)
+  // 'draw' = drawing new box, 'move' = moving whole box
+  // 'nw'|'ne'|'sw'|'se' = corner stretch, 'n'|'s'|'e'|'w' = edge stretch
+  type DragMode = 'none' | 'draw' | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w'
+  const [dragMode, setDragMode] = useState<DragMode>('none')
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
-
+  const [boxAtDrag, setBoxAtDrag] = useState<CropBox | null>(null)
   // ──────────────────────────────────────────────────────────────────────────
   const handleFile = (file: File) => {
     setResultUrl(null)
@@ -77,6 +80,30 @@ export default function CropResizeClient() {
     setRatio(r)
     if (r !== null) setHeight(Math.round(width / r))
   }
+  // ── Detect which part of the crop box the cursor is on ────────────────────
+  const HANDLE = 10 // px hit area for handles
+  const hitTest = (px: number, py: number, box: CropBox): DragMode => {
+    const { x, y, w, h } = box
+    const onLeft = Math.abs(px - x) < HANDLE
+    const onRight = Math.abs(px - (x + w)) < HANDLE
+    const onTop = Math.abs(py - y) < HANDLE
+    const onBottom = Math.abs(py - (y + h)) < HANDLE
+    const inX = px > x - HANDLE && px < x + w + HANDLE
+    const inY = py > y - HANDLE && py < y + h + HANDLE
+
+    if (onTop && onLeft) return 'nw'
+    if (onTop && onRight) return 'ne'
+    if (onBottom && onLeft) return 'sw'
+    if (onBottom && onRight) return 'se'
+    if (onTop && inX) return 'n'
+    if (onBottom && inX) return 's'
+    if (onLeft && inY) return 'w'
+    if (onRight && inY) return 'e'
+    // Inside box = move
+    if (px > x && px < x + w && py > y && py < y + h) return 'move'
+    return 'none'
+  }
+
 
   // ── Convert preview element px → original image px ────────────────────────
   const previewToImage = (box: CropBox) => {
@@ -113,57 +140,158 @@ export default function CropResizeClient() {
   }
 
   // ── Mouse drag handlers ────────────────────────────────────────────────────
+  // ── Mouse handlers ────────────────────────────────────────────────────────
+  const getPos = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  }
+  const getTouchPos = (e: React.TouchEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const touch = e.touches[0]
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top }
+  }
+
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (mode !== 'manualcrop') return
     e.preventDefault()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const { x, y } = getPos(e)
+
+    if (cropBox) {
+      const hit = hitTest(x, y, cropBox)
+      if (hit !== 'none') {
+        setDragMode(hit)
+        setDragStart({ x, y })
+        setBoxAtDrag({ ...cropBox })
+        return
+      }
+    }
+    // Start drawing a new box
+    setDragMode('draw')
     setDragStart({ x, y })
     setCropBox({ x, y, w: 0, h: 0 })
-    setDragging(true)
+    setBoxAtDrag(null)
   }
 
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging || mode !== 'manualcrop') return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    setCropBox({
-      x: Math.min(x, dragStart.x),
-      y: Math.min(y, dragStart.y),
-      w: Math.abs(x - dragStart.x),
-      h: Math.abs(y - dragStart.y),
-    })
+    if (mode !== 'manualcrop') return
+    const { x, y } = getPos(e)
+
+    // Update cursor based on hover position
+    if (dragMode === 'none' && cropBox) {
+      const hit = hitTest(x, y, cropBox)
+      const cursors: Record<string, string> = {
+        nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize',
+        n: 'n-resize', s: 's-resize', w: 'w-resize', e: 'e-resize',
+        move: 'move', none: 'crosshair',
+      }
+      e.currentTarget.style.cursor = cursors[hit] ?? 'crosshair'
+    }
+
+    if (dragMode === 'none') return
+    const dx = x - dragStart.x
+    const dy = y - dragStart.y
+
+    if (dragMode === 'draw') {
+      setCropBox({
+        x: Math.min(x, dragStart.x),
+        y: Math.min(y, dragStart.y),
+        w: Math.abs(dx),
+        h: Math.abs(dy),
+      })
+      return
+    }
+
+    if (!boxAtDrag) return
+    const b = { ...boxAtDrag }
+
+    if (dragMode === 'move') {
+      setCropBox({ ...b, x: b.x + dx, y: b.y + dy })
+      return
+    }
+
+    // Stretch corners and edges
+    let { x: bx, y: by, w: bw, h: bh } = b
+    if (dragMode === 'nw') { bx += dx; by += dy; bw -= dx; bh -= dy }
+    if (dragMode === 'ne') { by += dy; bw += dx; bh -= dy }
+    if (dragMode === 'sw') { bx += dx; bw -= dx; bh += dy }
+    if (dragMode === 'se') { bw += dx; bh += dy }
+    if (dragMode === 'n') { by += dy; bh -= dy }
+    if (dragMode === 's') { bh += dy }
+    if (dragMode === 'w') { bx += dx; bw -= dx }
+    if (dragMode === 'e') { bw += dx }
+
+    // Prevent negative width/height (flip prevention)
+    if (bw < 10) { if (dragMode.includes('w')) bx = b.x + b.w - 10; bw = 10 }
+    if (bh < 10) { if (dragMode.includes('n')) by = b.y + b.h - 10; bh = 10 }
+
+    setCropBox({ x: bx, y: by, w: bw, h: bh })
   }
 
-  const onMouseUp = () => setDragging(false)
+  const onMouseUp = () => {
+    setDragMode('none')
+    setBoxAtDrag(null)
+  }
 
   // ── Touch support (mobile) ─────────────────────────────────────────────────
+  // ── Touch support ─────────────────────────────────────────────────────────
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (mode !== 'manualcrop') return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const touch = e.touches[0]
-    const x = touch.clientX - rect.left
-    const y = touch.clientY - rect.top
+    const { x, y } = getTouchPos(e)
+
+    if (cropBox) {
+      const hit = hitTest(x, y, cropBox)
+      if (hit !== 'none') {
+        setDragMode(hit)
+        setDragStart({ x, y })
+        setBoxAtDrag({ ...cropBox })
+        return
+      }
+    }
+    setDragMode('draw')
     setDragStart({ x, y })
     setCropBox({ x, y, w: 0, h: 0 })
-    setDragging(true)
+    setBoxAtDrag(null)
   }
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!dragging || mode !== 'manualcrop') return
+    if (mode !== 'manualcrop' || dragMode === 'none') return
     e.preventDefault()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const touch = e.touches[0]
-    const x = touch.clientX - rect.left
-    const y = touch.clientY - rect.top
-    setCropBox({
-      x: Math.min(x, dragStart.x),
-      y: Math.min(y, dragStart.y),
-      w: Math.abs(x - dragStart.x),
-      h: Math.abs(y - dragStart.y),
-    })
+    const { x, y } = getTouchPos(e)
+    const dx = x - dragStart.x
+    const dy = y - dragStart.y
+
+    if (dragMode === 'draw') {
+      setCropBox({
+        x: Math.min(x, dragStart.x),
+        y: Math.min(y, dragStart.y),
+        w: Math.abs(dx),
+        h: Math.abs(dy),
+      })
+      return
+    }
+
+    if (!boxAtDrag) return
+    const b = { ...boxAtDrag }
+
+    if (dragMode === 'move') {
+      setCropBox({ ...b, x: b.x + dx, y: b.y + dy })
+      return
+    }
+
+    let { x: bx, y: by, w: bw, h: bh } = b
+    if (dragMode === 'nw') { bx += dx; by += dy; bw -= dx; bh -= dy }
+    if (dragMode === 'ne') { by += dy; bw += dx; bh -= dy }
+    if (dragMode === 'sw') { bx += dx; bw -= dx; bh += dy }
+    if (dragMode === 'se') { bw += dx; bh += dy }
+    if (dragMode === 'n') { by += dy; bh -= dy }
+    if (dragMode === 's') { bh += dy }
+    if (dragMode === 'w') { bx += dx; bw -= dx }
+    if (dragMode === 'e') { bw += dx }
+
+    if (bw < 10) bw = 10
+    if (bh < 10) bh = 10
+
+    setCropBox({ x: bx, y: by, w: bw, h: bh })
   }
   // ── Live preview render (draws scaled-down version into preview canvas) ────
   const renderPreview = useCallback(() => {
@@ -369,19 +497,50 @@ export default function CropResizeClient() {
                 }}
               >
                 {/* Corner handles */}
+                {/* Corner handles — larger for easier grabbing */}
                 {[
-                  { top: -3, left: -3 },
-                  { top: -3, right: -3 },
-                  { bottom: -3, left: -3 },
-                  { bottom: -3, right: -3 },
-                ].map((style, i) => (
+                  { top: -5, left: -5, cursor: 'nw-resize' },
+                  { top: -5, right: -5, cursor: 'ne-resize' },
+                  { bottom: -5, left: -5, cursor: 'sw-resize' },
+                  { bottom: -5, right: -5, cursor: 'se-resize' },
+                ].map((s, i) => (
                   <div key={i} style={{
                     position: 'absolute',
-                    width: 8,
-                    height: 8,
+                    width: 12,
+                    height: 12,
                     background: '#6366f1',
-                    borderRadius: 1,
-                    ...style,
+                    border: '2px solid #fff',
+                    borderRadius: 2,
+                    cursor: s.cursor,
+                    pointerEvents: 'all',
+                    top: s.top,
+                    left: s.left,
+                    right: s.right,
+                    bottom: s.bottom,
+                  }} />
+                ))}
+
+                {/* Edge handles — midpoints of each side */}
+                {[
+                  { top: '50%', left: -5, transform: 'translateY(-50%)', cursor: 'w-resize' },
+                  { top: '50%', right: -5, transform: 'translateY(-50%)', cursor: 'e-resize' },
+                  { left: '50%', top: -5, transform: 'translateX(-50%)', cursor: 'n-resize' },
+                  { left: '50%', bottom: -5, transform: 'translateX(-50%)', cursor: 's-resize' },
+                ].map((s, i) => (
+                  <div key={`edge-${i}`} style={{
+                    position: 'absolute',
+                    width: 10,
+                    height: 10,
+                    background: '#818cf8',
+                    border: '2px solid #fff',
+                    borderRadius: 99,
+                    cursor: s.cursor,
+                    pointerEvents: 'all',
+                    top: s.top,
+                    left: s.left,
+                    right: s.right,
+                    bottom: s.bottom,
+                    transform: s.transform,
                   }} />
                 ))}
 
