@@ -35,13 +35,6 @@ const IMAGE_TOOLS = [
     desc: 'Convert images between JPG, PNG, WebP, BMP, GIF instantly in browser.',
     badge: null,
   },
-  {
-    href: '/tools/remove-background',
-    icon: '✂️',
-    name: 'Background Remover',
-    desc: 'Remove image background with AI. Export transparent PNG or replace with color/image.',
-    badge: 'New',
-  },
 ]
 
 const VIDEO_TOOLS = [
