@@ -42,6 +42,13 @@ const IMAGE_TOOLS = [
     desc: 'Remove image background with AI. Export transparent PNG or replace with color/image.',
     badge: 'New',
   },
+  {
+    href: '/tools/blur-background',
+    icon: '🌫️',
+    name: 'Blur Background',
+    desc: 'AI-powered portrait mode — blur the background while keeping the subject sharp.',
+    badge: 'New',
+  },
 ]
 
 const VIDEO_TOOLS = [
