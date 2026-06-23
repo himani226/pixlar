@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'PixlrTools privacy policy. Your files never leave your browser.',
+  description: 'Pixlar privacy policy. Your files never leave your browser.',
 }
 
 export default function PrivacyPage() {
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       {[
         {
           title: 'No data collection',
-          body: 'PixlrTools does not collect, store, or transmit any personal data. We do not have user accounts, login systems, or databases storing your information.',
+          body: 'Pixlar does not collect, store, or transmit any personal data. We do not have user accounts, login systems, or databases storing your information.',
         },
         {
           title: 'Your files stay in your browser',

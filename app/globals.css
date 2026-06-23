@@ -1,31 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Brand */
-  --brand: #6366f1;
-  --brand-dim: #4f46e5;
-  --accent: #a5f3fc;
+  /* Brand — derived from the Pixlar logo */
+  --brand: #4f46e5;          /* indigo accent (Browser Native block) */
+  --brand-dim: #4338ca;
+  --navy: #1f3a5f;           /* the "Pixlar" wordmark navy */
+  --navy-deep: #15243a;
+  --accent: #6366f1;
 
-  /* Surfaces (dark theme) */
-  --bg: #0c0c10;
-  --bg2: #13131a;
-  --bg3: #1a1a23;
-  --bg4: #22222d;
-  --border: rgba(255,255,255,0.08);
-  --border-active: rgba(99,102,241,0.5);
+  /* Hexagon palette (logo's six colors) */
+  --hex-blue:   #2196d4;
+  --hex-green:  #57b947;
+  --hex-yellow: #f5b819;
+  --hex-orange: #ec6a1e;
+  --hex-red:    #e02d3c;
+  --hex-purple: #9c2d8f;
+
+  /* Surfaces (LIGHT theme) */
+  --bg:  #f4f5fa;            /* page background — soft lavender-grey */
+  --bg2: #ffffff;            /* cards */
+  --bg3: #f7f8fc;            /* inset panels / inputs */
+  --bg4: #eceef6;            /* sliders / track */
+  --border: rgba(31,58,95,0.10);
+  --border-active: rgba(79,70,229,0.45);
+
+  /* Dark panel (Why local processing matters) */
+  --panel-dark: #0f1117;
+  --panel-dark-2: #1a1d27;
 
   /* Text */
-  --text: #f4f4f6;
-  --text-2: #a1a1aa;
-  --text-3: #71717a;
+  --text:  #14213d;          /* near-navy headings/body */
+  --text-2: #5a6b85;         /* secondary */
+  --text-3: #8a96aa;         /* muted */
 }
 
 * {
@@ -50,13 +64,13 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #d4d8e6; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
 /* Selection */
-::selection { background: rgba(99,102,241,0.3); color: var(--text); }
+::selection { background: rgba(79,70,229,0.18); color: var(--navy); }
 
 /* Focus ring */
 :focus-visible {
@@ -75,23 +89,24 @@ body {
   border-radius: 16px;
   transition: border-color 0.2s, background 0.2s;
   cursor: pointer;
+  background: var(--bg2);
 }
 .dropzone:hover,
 .dropzone.active {
   border-color: var(--brand);
-  background: rgba(99,102,241,0.04);
+  background: rgba(79,70,229,0.03);
 }
 
 /* Progress bar */
 .progress-bar {
-  height: 4px;
+  height: 6px;
   background: var(--bg4);
   border-radius: 99px;
   overflow: hidden;
 }
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--brand), var(--accent));
+  background: linear-gradient(90deg, var(--brand), var(--hex-blue));
   border-radius: 99px;
   transition: width 0.3s ease;
 }
@@ -102,7 +117,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: var(--brand);
+  background: var(--navy);
   color: white;
   border: none;
   border-radius: 10px;
@@ -113,7 +128,7 @@ body {
   transition: background 0.2s, transform 0.1s;
   text-decoration: none;
 }
-.btn-primary:hover { background: var(--brand-dim); }
+.btn-primary:hover { background: var(--navy-deep); }
 .btn-primary:active { transform: scale(0.98); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -122,7 +137,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: var(--bg3);
+  background: var(--bg2);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -135,7 +150,7 @@ body {
 }
 .btn-ghost:hover {
   border-color: var(--border-active);
-  background: var(--bg4);
+  background: var(--bg3);
 }
 
 /* Card */
@@ -144,9 +159,13 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(31,58,95,0.04);
 }
-.card:hover { border-color: rgba(99,102,241,0.25); }
+.card:hover {
+  border-color: rgba(79,70,229,0.22);
+  box-shadow: 0 4px 16px rgba(31,58,95,0.07);
+}
 
 /* Tool result panel */
 .result-panel {
@@ -175,12 +194,20 @@ input[type='range']::-webkit-slider-thumb {
   border-radius: 50%;
   cursor: pointer;
 }
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--brand);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
 
-/* Number input */
+/* Number + text inputs + select */
 input[type='number'],
 input[type='text'],
 select {
-  background: var(--bg3);
+  background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -196,13 +223,14 @@ select:focus {
   border-color: var(--brand);
 }
 
-/* Tool card hover — CSS only, no JS event handlers needed */
+/* Tool card hover — CSS only */
 .tool-card {
-  transition: border-color 0.2s, transform 0.15s;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 .tool-card-link:hover .tool-card {
-  transform: translateY(-2px);
-  border-color: rgba(99,102,241,0.35);
+  transform: translateY(-3px);
+  border-color: rgba(79,70,229,0.3);
+  box-shadow: 0 8px 24px rgba(31,58,95,0.09);
 }
 
 /* Animations */
