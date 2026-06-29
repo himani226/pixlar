@@ -2,30 +2,67 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Pixlar — Free Online Image & Video Tools',
+  title: 'Pixlar - Media tools designed for speed and simplicity.',
   alternates: { canonical: '/' },
 }
 
 const IMAGE_TOOLS = [
-  { href: '/tools/compress-image',   accent: 'var(--hex-blue)',   icon: '⚡', name: 'Image Compressor',  desc: 'Reduce image file size without visible quality loss. Supports JPG, PNG, WebP.', badge: 'Most popular' },
-  { href: '/tools/crop-resize',      accent: 'var(--hex-green)',  icon: '⛶', name: 'Crop & Resize',      desc: 'Crop to any ratio or resize to exact pixel dimensions instantly.', badge: null },
-  { href: '/tools/text-overlay',     accent: 'var(--hex-orange)', icon: 'T', name: 'Text Overlay',       desc: 'Add multi-line text, captions, or watermarks with full font and background control.', badge: null },
-  { href: '/tools/format-converter', accent: 'var(--hex-yellow)', icon: '⇄', name: 'Format Converter',   desc: 'Convert images between JPG, PNG, WebP, BMP instantly in your browser.', badge: null },
-  { href: '/tools/remove-background',accent: 'var(--hex-purple)', icon: '◐', name: 'Background Remover',  desc: 'AI-powered background removal. Export transparent PNG or replace with color or image.', badge: 'New' },
+  {
+    href: '/tools/compress-image',
+    accent: 'var(--hex-blue)',
+    icon: '⚡', name: 'Image Compressor',
+    desc: 'Reduce image file size without visible quality loss. Supports JPG, PNG, WebP.',
+    badge: 'Most popular'
+  },
+  {
+    href: '/tools/crop-resize',
+    accent: 'var(--hex-green)',
+    icon: '⛶',
+    name: 'Crop & Resize', 
+    desc: 'Crop to any ratio or resize to exact pixel dimensions instantly.', 
+    badge: null
+  },
+  { href: '/tools/text-overlay', accent: 'var(--hex-orange)', icon: 'T', name: 'Text Overlay', desc: 'Add multi-line text, captions, or watermarks with full font and background control.', badge: null },
+  { href: '/tools/format-converter', accent: 'var(--hex-yellow)', icon: '⇄', name: 'Format Converter', desc: 'Convert images between JPG, PNG, WebP, BMP instantly in your browser.', badge: null },
+  { href: '/tools/remove-background', accent: 'var(--hex-purple)', icon: '◐', name: 'Background Remover', desc: 'AI-powered background removal. Export transparent PNG or replace with color or image.', badge: 'New' },
+  {
+    href: '/tools/blur-background',
+    accent: 'var(--hex-blue)',
+    icon: '🌫️',
+    name: 'Blur Background',
+    desc: 'AI-powered portrait mode — blur the background while keeping the subject sharp.',
+    badge: 'New',
+  },
+  {
+    href: '#',
+    accent: 'var(--hex-green)',
+    icon: '',
+    name: 'AI Image Upscalar',
+    desc: '',
+    badge: 'Coming Soon',
+  },
+  {
+    href: '##',
+    accent: 'var(--hex-blue)',
+    icon: '',
+    name: 'Batch Image Processing',
+    desc: '',
+    badge: 'Coming Soon',
+  },
 ]
 
 const VIDEO_TOOLS = [
-  { href: '/tools/compress-video', accent: 'var(--hex-blue)',   icon: '🗜', name: 'Video Compressor', desc: 'Compress MP4 videos to a smaller size while keeping quality. Powered by FFmpeg.', badge: 'Most popular' },
-  { href: '/tools/trim-video',     accent: 'var(--hex-orange)', icon: '✂', name: 'Trim Video',       desc: 'Cut the start and end of a video clip to the exact timestamp you need.', badge: null },
-  { href: '/tools/merge-video',    accent: 'var(--hex-green)',  icon: '⧉', name: 'Merge Videos',  desc: 'Join multiple video clips together into one file seamlessly.', badge: null },
-  { href: '/tools/convert-video',  accent: 'var(--hex-yellow)', icon: '⇄', name: 'Video Converter',   desc: 'Convert between MP4, WebM, MKV, AVI, GIF and more formats for free.', badge: null },
+  { href: '/tools/compress-video', accent: 'var(--hex-blue)', icon: '🗜', name: 'Video Compressor', desc: 'Compress MP4 videos to a smaller size while keeping quality. Powered by FFmpeg.', badge: 'Most popular' },
+  { href: '/tools/trim-video', accent: 'var(--hex-orange)', icon: '✂', name: 'Trim Video', desc: 'Cut the start and end of a video clip to the exact timestamp you need.', badge: null },
+  { href: '/tools/merge-video', accent: 'var(--hex-green)', icon: '⧉', name: 'Merge Videos', desc: 'Join multiple video clips together into one file seamlessly.', badge: null },
+  { href: '/tools/convert-video', accent: 'var(--hex-yellow)', icon: '⇄', name: 'Video Converter', desc: 'Convert between MP4, WebM, MKV, AVI, GIF and more formats for free.', badge: null },
 ]
 
 const FEATURES = [
-  { icon: '🔒', title: '100% Private',    desc: 'Files are processed in your browser. Nothing is uploaded to our servers.' },
-  { icon: '⚡', title: 'Lightning Fast',  desc: 'WebAssembly-powered processing runs at near-native speed.' },
-  { icon: '∞', title: 'Always Free',     desc: 'Every tool is free with no limits, no watermarks, no account required.' },
-  { icon: '▣', title: 'Cross Platform',  desc: 'Fully responsive — works on desktop, tablet, or phone.' },
+  { icon: '🔒', title: '100% Private', desc: 'Files are processed in your browser. Nothing is uploaded to our servers.' },
+  { icon: '⚡', title: 'Lightning Fast', desc: 'WebAssembly-powered processing runs at near-native speed.' },
+  { icon: '∞', title: 'Always Free', desc: 'Every tool is free with no limits, no watermarks, no account required.' },
+  { icon: '▣', title: 'Cross Platform', desc: 'Fully responsive, works on desktop, tablet, or phone.' },
 ]
 
 export default function Home() {
@@ -51,13 +88,12 @@ export default function Home() {
           color: 'var(--navy)',
           marginBottom: 20,
         }}>
-          Simple, powerful{' '}
-          <span style={{ color: 'var(--brand)' }}>media tools.</span>
+          Pixlar {' '}
+          <span style={{ color: 'var(--brand)' }}>- Simple, powerful tools for image and video editing.</span>
         </h1>
 
         <p style={{ fontSize: 18, color: 'var(--text-2)', maxWidth: 560, margin: '0 auto 32px', lineHeight: 1.7 }}>
-          Compress, crop, resize, convert, and edit images &amp; videos directly in your browser.
-          Powered by WebAssembly for maximum speed and privacy.
+          Compress, crop, resize, convert, and edit images and videos directly in your browser-fast, secure, and completely private.
         </p>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>

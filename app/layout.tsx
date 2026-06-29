@@ -198,11 +198,6 @@ function Footer() {
             { label: 'Terms', href: '/terms' },
           ]} />
 
-          {/* Built with */}
-          <FooterCol title="Built with" links={[
-            { label: 'WebAssembly', href: '/#image-tools' },
-            { label: 'Canvas API', href: '/#image-tools' },
-          ]} />
         </div>
 
         {/* Bottom bar */}
