@@ -186,10 +186,19 @@ function Footer() {
           </div>
 
           {/* Tools */}
-          <FooterCol title="Tools" links={[
-            { label: 'Image', href: '/#image-tools' },
-            { label: 'Video', href: '/#video-tools' },
+          <FooterCol title="Image Tools" links={[
+            { label: 'Compress Image', href: '/tools/compress-image' },
+            { label: 'Crop Images', href: '/tools/crop-resize' },
+            { label: 'Format Converter', href: '/tools/format-converter' },
+            { label: 'Image Text Overlay', href: '/tools/text-overlay' },
             { label: 'Background Remover', href: '/tools/remove-background' },
+          ]} />
+
+          <FooterCol title="Video Tools" links={[
+            { label: 'Compress Video', href: 'tools/compress-video' },
+            { label: 'Video Converter', href: '/tools/convert-video' },
+            { label: 'Merge Video', href: '/tools/merge-video' },
+            { label: 'Trim Video', href: '/tools/trim-video' },
           ]} />
 
           {/* Company */}
@@ -212,7 +221,7 @@ function Footer() {
           fontSize: 12.5,
           color: 'var(--text-3)',
         }}>
-          <span>© {year} Pixlar — All tools are free forever. No account needed.</span>
+          <span>© {year} Pixlar, All tools are free forever. No account needed.</span>
           <span>Your files never leave your browser.</span>
         </div>
       </div>

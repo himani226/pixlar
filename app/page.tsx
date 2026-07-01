@@ -18,8 +18,8 @@ const IMAGE_TOOLS = [
     href: '/tools/crop-resize',
     accent: 'var(--hex-green)',
     icon: '⛶',
-    name: 'Crop & Resize', 
-    desc: 'Crop to any ratio or resize to exact pixel dimensions instantly.', 
+    name: 'Crop & Resize',
+    desc: 'Crop to any ratio or resize to exact pixel dimensions instantly.',
     badge: null
   },
   { href: '/tools/text-overlay', accent: 'var(--hex-orange)', icon: 'T', name: 'Text Overlay', desc: 'Add multi-line text, captions, or watermarks with full font and background control.', badge: null },
@@ -120,7 +120,7 @@ export default function Home() {
       {/* ── IMAGE TOOLS ── */}
       <section id="image-tools" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 56px' }}>
         <SectionHeader label="Image Tools" title="Edit and convert images"
-          desc="All image processing runs entirely in your browser using the Canvas API." />
+          desc="All image processing runs entirely in your browser" />
         <ToolGrid tools={IMAGE_TOOLS} />
       </section>
 
@@ -189,7 +189,7 @@ export default function Home() {
       {/* ── VIDEO TOOLS ── */}
       <section id="video-tools" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 56px' }}>
         <SectionHeader label="Video Tools" title="Process videos for free"
-          desc="Powered by FFmpeg.wasm — the full FFmpeg engine running inside your browser." />
+          desc="All video processing entirely run on your browser" />
         <ToolGrid tools={VIDEO_TOOLS} />
       </section>
 
@@ -255,28 +255,56 @@ export default function Home() {
       </section>
 
       {/* ── SEO CONTENT ── */}
-      <section style={{ maxWidth: 760, margin: '0 auto', padding: '16px 24px 24px', color: 'var(--text-2)' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--navy)', marginBottom: 16 }}>
-          Why use Pixlar?
-        </h2>
-        <p style={{ marginBottom: 16, lineHeight: 1.8 }}>
-          Pixlar provides free, fast, and private image and video processing tools. Unlike other online
-          tools that upload your files to remote servers, Pixlar processes everything locally inside your
-          browser using modern WebAssembly technology. This means your photos, videos, and personal media
-          never leave your device.
-        </p>
-        <p style={{ marginBottom: 16, lineHeight: 1.8 }}>
-          Our <strong style={{ color: 'var(--navy)' }}>image compressor</strong> reduces file sizes by up
-          to 90% without noticeable quality loss, perfect for websites, email attachments, and social media
-          uploads. The <strong style={{ color: 'var(--navy)' }}>crop and resize tool</strong> lets you trim
-          images to exact dimensions or popular aspect ratios like 1:1 for Instagram or 16:9 for YouTube
-          thumbnails.
-        </p>
-        <p style={{ lineHeight: 1.8 }}>
-          For video, our <strong style={{ color: 'var(--navy)' }}>free video compressor</strong> uses
-          FFmpeg.wasm to compress MP4 and other video formats directly in the browser with no file size
-          limits. All tools are completely free, with no watermarks, no subscriptions, and no hidden fees.
-        </p>
+      {/* ── SEO CONTENT — text beside image ── */}
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '16px 24px 40px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
+          gap: 40,
+          alignItems: 'center',
+        }} className="seo-grid">
+          {/* Left: text */}
+          <div style={{ color: 'var(--text-2)' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--navy)', marginBottom: 16 }}>
+              Why use Pixlar?
+            </h2>
+            <p style={{ marginBottom: 16, lineHeight: 1.8 }}>
+              Pixlar provides free, fast, and private image and video processing tools. Unlike other online
+              tools that upload your files to remote servers, Pixlar processes everything locally inside your
+              browser using modern WebAssembly technology. This means your photos, videos, and personal media
+              never leave your device.
+            </p>
+            <p style={{ marginBottom: 16, lineHeight: 1.8 }}>
+              Our <strong style={{ color: 'var(--navy)' }}>image compressor</strong> reduces file sizes by up
+              to 90% without noticeable quality loss, perfect for websites, email attachments, and social media
+              uploads. The <strong style={{ color: 'var(--navy)' }}>crop and resize tool</strong> lets you trim
+              images to exact dimensions or popular aspect ratios like 1:1 for Instagram or 16:9 for YouTube
+              thumbnails.
+            </p>
+            <p style={{ lineHeight: 1.8 }}>
+              For video, our <strong style={{ color: 'var(--navy)' }}>free video compressor</strong> uses
+              FFmpeg.wasm to compress MP4 and other video formats directly in the browser with no file size
+              limits. All tools are completely free, with no watermarks, no subscriptions, and no hidden fees.
+            </p>
+          </div>
+
+          {/* Right: image */}
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="./HeroSectionImage.jpeg"
+              alt="Editing media in the browser with Pixlar"
+              style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
+            />
+          </div>
+        </div>
+
+        {/* Stack on mobile */}
+        <style>{`
+    @media (max-width: 768px) {
+      .seo-grid { grid-template-columns: 1fr !important; }
+    }
+  `}</style>
       </section>
     </>
   )
