@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Pixlar - Media tools designed for speed and simplicity.',
+  title: 'Pixlar:  Media tools designed for speed and simplicity.',
   alternates: { canonical: '/' },
 }
 
@@ -89,7 +89,7 @@ export default function Home() {
           marginBottom: 20,
         }}>
           Pixlar {' '}
-          <span style={{ color: 'var(--brand)' }}>- Simple, powerful tools for image and video editing.</span>
+          <span style={{ color: 'var(--brand)' }}> Simple, powerful tools for image and video editing.</span>
         </h1>
 
         <p style={{ fontSize: 18, color: 'var(--text-2)', maxWidth: 560, margin: '0 auto 32px', lineHeight: 1.7 }}>
