@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export const dynamic = 'force-static'
 
-const SITE_URL = 'https://yourdomain.com' // ← replace with your domain
+const SITE_URL = 'https://www.pixlar.app'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()

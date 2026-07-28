@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export const dynamic = 'force-static'
 
-const SITE_URL = 'https://yourdomain.com'
+const SITE_URL = 'https://www.pixlar.app'
 
 export default function robots(): MetadataRoute.Robots {
   return {
