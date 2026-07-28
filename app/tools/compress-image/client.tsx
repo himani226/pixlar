@@ -118,7 +118,7 @@ export default function CompressImageClient() {
       {/* Preview + result */}
       {result && preview && (
         <div style={{ marginTop: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
+         <div data-grid="before-after" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 4 }}>
             <div className="result-panel">
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8 }}>Original</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -105,8 +105,8 @@ export default function TrimVideoClient() {
 
           {duration > 0 && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                <div>
+              <div data-grid="trim-sliders" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                  <div>
                   <label style={{ fontSize: 13, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
                     Start time: <strong style={{ color: 'var(--text)' }}>{toHMS(startTime)}</strong>
                   </label>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import './globals.css'
 
-const SITE_URL = 'https://yourdomain.com' // ← replace with your Hostinger domain
+const SITE_URL = 'https://www.pixlar.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -163,6 +163,12 @@ function Footer() {
           gap: 32,
           marginBottom: 40,
         }}>
+          <div data-grid="footer" style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(220px, 1.4fr) repeat(3, 1fr)',
+            gap: 32,
+            marginBottom: 40,
+          }}></div>
           {/* Brand column */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>

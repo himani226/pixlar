@@ -126,7 +126,7 @@ export default function Home() {
 
       {/* ── DARK PANEL: Why local processing ── */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 24px 56px' }}>
-        <div style={{
+        <div data-grid="why-local" style={{
           background: 'var(--panel-dark)',
           borderRadius: 24,
           padding: 'clamp(32px, 5vw, 56px)',
@@ -195,7 +195,7 @@ export default function Home() {
 
       {/* ── BROWSER NATIVE + STATS ── */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 24px 56px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1.4fr)', gap: 16 }}>
+      <div data-grid="utility-stats" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1.4fr)', gap: 16 }}>
           {/* Left: professional utility */}
           <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
@@ -240,7 +240,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div data-grid="stats-pair" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="card" style={{ padding: 24, textAlign: 'center' }}>
                 <p style={{ fontFamily: 'var(--font-display)', fontSize: 34, fontWeight: 700, color: 'var(--navy)', lineHeight: 1 }}>0</p>
                 <p style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)', marginTop: 8 }}>Servers Used</p>

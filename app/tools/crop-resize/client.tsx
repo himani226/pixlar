@@ -607,8 +607,7 @@ export default function CropResizeClient() {
           {/* Dimensions (resize + autocrop) */}
           {mode !== 'manualcrop' && (
             <>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', alignItems:'center', gap:12, marginBottom:12 }}>
-                <div>
+              <div data-grid="dimensions" style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', alignItems:'center', gap:12, marginBottom:12 }}>      <div>
                   <label style={{ fontSize:13, color:'var(--text-2)', display:'block', marginBottom:6 }}>Width (px)</label>
                   <input type="number" value={width} min={1} max={8000}
                     onChange={(e) => handleWidthChange(Number(e.target.value))} style={{ width:'100%' }} />

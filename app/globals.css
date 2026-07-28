@@ -255,3 +255,32 @@ select:focus {
   animation: shimmer 1.4s ease infinite;
   border-radius: 8px;
 }
+
+
+/* ── Responsive grid overrides ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  [data-grid="footer"] {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  [data-grid="why-local"] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-grid="utility-stats"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  [data-grid="stats-pair"],
+  [data-grid="before-after"],
+  [data-grid="dimensions"],
+  [data-grid="trim-sliders"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .btn-primary, .btn-ghost {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+}
