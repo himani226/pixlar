@@ -157,18 +157,15 @@ function Footer() {
     <footer style={{ borderTop: '1px solid var(--border)', marginTop: 80, background: 'var(--bg2)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px 32px' }}>
         {/* Top: logo + columns */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(220px, 1.4fr) repeat(3, 1fr)',
-          gap: 32,
-          marginBottom: 40,
-        }}>
-          <div data-grid="footer" style={{
+        <div
+          data-grid="footer"
+          style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(220px, 1.4fr) repeat(3, 1fr)',
             gap: 32,
             marginBottom: 40,
-          }}></div>
+          }}
+        >
           {/* Brand column */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -183,28 +180,28 @@ function Footer() {
             </p>
           </div>
 
-          {/* Tools */}
+          {/* Image Tools */}
           <FooterCol title="Image Tools" links={[
-            { label: 'Compress Image', href: '/tools/compress-image' },
-            { label: 'Crop Images', href: '/tools/crop-resize' },
-            { label: 'Format Converter', href: '/tools/format-converter' },
-            { label: 'Image Text Overlay', href: '/tools/text-overlay' },
-            { label: 'Background Remover', href: '/tools/remove-background' },
+            { label: 'Compress Image',      href: '/tools/compress-image' },
+            { label: 'Crop Images',         href: '/tools/crop-resize' },
+            { label: 'Format Converter',    href: '/tools/format-converter' },
+            { label: 'Image Text Overlay',  href: '/tools/text-overlay' },
+            { label: 'Background Remover',  href: '/tools/remove-background' },
           ]} />
 
+          {/* Video Tools */}
           <FooterCol title="Video Tools" links={[
-            { label: 'Compress Video', href: 'tools/compress-video' },
+            { label: 'Compress Video',  href: '/tools/compress-video' },
             { label: 'Video Converter', href: '/tools/convert-video' },
-            { label: 'Merge Video', href: '/tools/merge-video' },
-            { label: 'Trim Video', href: '/tools/trim-video' },
+            { label: 'Merge Video',     href: '/tools/merge-video' },
+            { label: 'Trim Video',      href: '/tools/trim-video' },
           ]} />
 
           {/* Company */}
           <FooterCol title="Company" links={[
             { label: 'Privacy', href: '/privacy' },
-            { label: 'Terms', href: '/terms' },
+            { label: 'Terms',   href: '/terms' },
           ]} />
-
         </div>
 
         {/* Bottom bar */}
@@ -219,7 +216,7 @@ function Footer() {
           fontSize: 12.5,
           color: 'var(--text-3)',
         }}>
-          <span>© {year} Pixlar, All tools are free forever. No account needed.</span>
+          <span>© {year} Pixlar — All tools are free forever. No account needed.</span>
           <span>Your files never leave your browser.</span>
         </div>
       </div>
