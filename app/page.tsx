@@ -58,6 +58,13 @@ const VIDEO_TOOLS = [
   { href: '/tools/convert-video', accent: 'var(--hex-yellow)', icon: '⇄', name: 'Video Converter', desc: 'Convert between MP4, WebM, MKV, AVI, GIF and more formats for free.', badge: null },
 ]
 
+const PDF_TOOLS = [
+  { href: '/tools/compress-pdf', accent: 'var(--hex-blue)', icon: '🗜', name: 'Compress PDF', desc: 'Reduce PDF file size while maintaining quality.', badge: null },
+  { href: '/tools/split-pdf', accent: 'var(--hex-orange)', icon: '✂', name: 'Split PDF', desc: 'Extract pages or split into separate files.', badge: null },
+  { href: '/tools/merge-pdf', accent: 'var(--hex-green)', icon: '⧉', name: 'Merge PDF', desc: 'Combine multiple PDFs into a single file.', badge: null },
+  { href: '/tools/image-to-pdf', accent: 'var(--hex-yellow)', icon: '🖼️', name: 'Image to PDF', desc: 'Convert images into a single PDF file.', badge: null },
+]
+
 const FEATURES = [
   { icon: '🔒', title: '100% Private', desc: 'Files are processed in your browser. Nothing is uploaded to our servers.' },
   { icon: '⚡', title: 'Lightning Fast', desc: 'WebAssembly-powered processing runs at near-native speed.' },
@@ -193,9 +200,16 @@ export default function Home() {
         <ToolGrid tools={VIDEO_TOOLS} />
       </section>
 
+      {/* ── PDF TOOLS ── */}
+      <section id="pdf-tools" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px 56px' }}>
+        <SectionHeader label="PDF Tools" title="Process PDFs for free"
+          desc="All PDF processing entirely run on your browser" />
+        <ToolGrid tools={PDF_TOOLS} />
+      </section>
+
       {/* ── BROWSER NATIVE + STATS ── */}
       <section style={{ maxWidth: 1100, margin: '0 auto', padding: '8px 24px 56px' }}>
-      <div data-grid="utility-stats" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1.4fr)', gap: 16 }}>
+        <div data-grid="utility-stats" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1.4fr)', gap: 16 }}>
           {/* Left: professional utility */}
           <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
