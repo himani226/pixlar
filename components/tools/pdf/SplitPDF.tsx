@@ -2,9 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist';
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export default function SplitPDF() {
   const [file, setFile] = useState<File | null>(null);
@@ -26,7 +23,7 @@ export default function SplitPDF() {
         const arrayBuffer = await selectedFile.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         setTotalPages(pdfDoc.getPageCount());
-      } catch (err) {
+      } catch {
         setError('Failed to read PDF file');
       }
     } else {
@@ -64,7 +61,6 @@ export default function SplitPDF() {
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       
       if (extractMode === 'range') {
-        // Extract specific range
         if (!pageRange.trim()) {
           setError('Please enter page numbers or range');
           setSplitting(false);
@@ -87,11 +83,9 @@ export default function SplitPDF() {
         });
 
         setProgress(100);
-        const pdfBytesRaw = await pdfDoc.save();
-        const pdfBytes = new Uint8Array(pdfBytesRaw);
+        const pdfBytes = await newPdf.save() as Uint8Array;
         downloadPDF(pdfBytes, `extracted-pages-${pageRange.replace(/[, -]/g, '-')}.pdf`);
       } else {
-        // Split each page into individual file
         const pageCount = pdfDoc.getPageCount();
         
         for (let i = 0; i < pageCount; i++) {
@@ -99,7 +93,7 @@ export default function SplitPDF() {
           const [page] = await newPdf.copyPages(pdfDoc, [i]);
           newPdf.addPage(page);
           
-          const pdfBytes = await newPdf.save();
+          const pdfBytes = await newPdf.save() as Uint8Array;
           downloadPDF(pdfBytes, `page-${i + 1}.pdf`);
           
           setProgress(Math.min((i + 1 / pageCount) * 100, 99));
@@ -110,9 +104,8 @@ export default function SplitPDF() {
 
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
+    } catch {
       setError('Failed to split PDF. Please try another file.');
-      console.error(err);
     } finally {
       setSplitting(false);
       setProgress(0);
@@ -120,7 +113,7 @@ export default function SplitPDF() {
   };
 
   const downloadPDF = (pdfBytes: Uint8Array, filename: string) => {
-    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -128,6 +121,7 @@ export default function SplitPDF() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">

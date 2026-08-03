@@ -2,9 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist';
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export default function CompressPDF() {
   const [file, setFile] = useState<File | null>(null);
