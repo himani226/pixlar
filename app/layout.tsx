@@ -145,6 +145,9 @@ function Header() {
           <Link href="/#video-tools" className="btn-ghost" style={{ padding: '7px 16px', fontSize: 14 }}>
             Video
           </Link>
+          <Link href="/#pdf-tools" className="btn-ghost" style={{ padding: '7px 16px', fontSize: 14 }}>
+            PDF
+          </Link>
         </nav>
       </div>
     </header>
@@ -197,10 +200,12 @@ function Footer() {
             { label: 'Trim Video',      href: '/tools/trim-video' },
           ]} />
 
-          {/* Company */}
-          <FooterCol title="Company" links={[
-            { label: 'Privacy', href: '/privacy' },
-            { label: 'Terms',   href: '/terms' },
+           {/* PDF Tools */}
+           <FooterCol title="PDF Tools" links={[
+            { label: 'Compress PDF',  href: '/tools/compress-pdf' },
+            { label: 'Split PDF', href: '/tools/split-pdf' },
+            { label: 'Merge PDF',     href: '/tools/merge-pdf' },
+            { label: 'Image to PDF',      href: '/tools/image-to-pdf' },
           ]} />
         </div>
 

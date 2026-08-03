@@ -96,16 +96,17 @@ export default function Home() {
           marginBottom: 20,
         }}>
           Pixlar {' '}
-          <span style={{ color: 'var(--brand)' }}> Simple, powerful tools for image and video editing.</span>
+          <span style={{ color: 'var(--brand)' }}> Simple, powerful tools for image, video, and PDF editing.</span>
         </h1>
 
         <p style={{ fontSize: 18, color: 'var(--text-2)', maxWidth: 560, margin: '0 auto 32px', lineHeight: 1.7 }}>
-          Compress, crop, resize, convert, and edit images and videos directly in your browser-fast, secure, and completely private.
+              Compress, crop, resize, convert, and edit images, videos, and PDFs directly in your browser-fast, secure, and completely private.
         </p>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="#image-tools" className="btn-primary">Explore image tools →</a>
           <a href="#video-tools" className="btn-ghost">Explore video tools</a>
+          <a href="#pdf-tools" className="btn-ghost">Explore PDF tools</a>
         </div>
       </section>
 
